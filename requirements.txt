@@ -1,0 +1,3 @@
+patool==1.12
+pyunpack==0.1.1
+rarfile==2.8
