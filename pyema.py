@@ -37,7 +37,6 @@ def get_lines(cmd):
 
     while True:
         line = proc.stdout.readline()
-#         print(line)
         if line:
             yield line
 
@@ -48,11 +47,10 @@ class EMA:
     def __init__(self, arc_file):
         self.arc_file = expanduser(arc_file)
         self.basepath, _ = split(self.arc_file)
-#         self.file_name, self.file_ext = splitext(self.file_name_ext)
 
     def execute(self):
         """
-        zip解凍→画像圧縮→rar化
+        zip解凍→画像圧縮→rar
         """
         print("extracting archive file ...")
         extracted_pathes = self.archive_path()
@@ -89,11 +87,8 @@ class EMA:
         self.mogrify(img_list)
 
         # archive images
-#         files = [f.replace(' ', '\ ') for f in img_list]
-#         files = [f.replace(' ', '\ ') for f in path_allfiles]
         rar_name = basename(extracted_path.replace(' ', '\ ')) + "[Archived].rar"
         rar_name = join(self.basepath, rar_name)
-#         cmd = "rar a -r -m5 -ep1 " + rar_name + " " + " ".join(files)
         cmd = "rar a -r -m5 -ep1 " + rar_name + " " + " ".join(img_list)
         print("archive images ...")
         for line in get_lines(cmd):
@@ -117,9 +112,6 @@ def execute_ema(arc_file):
     ema.execute()
     ema.rm_tmpdir()
     print("Done!")
-
-# arc_file = "/path/to/somefile.rar"
-arc_file = "~/Downloads/somefile.rar"
 
 args = sys.argv
 if len(args) < 2:
