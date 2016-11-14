@@ -1,9 +1,11 @@
 """zip化された画像ファイルを解凍し、再圧縮するスクリプト."""
 import glob
+import hashlib
 import mimetypes
 import shutil
 import subprocess
 import sys
+import time
 from os import mkdir
 from os.path import basename, dirname, expanduser, isdir, join, split, splitext
 
@@ -23,6 +25,11 @@ def is_archived(path):
         return False
     else:
         return mt == 'application/zip' or mt == 'application/x-rar-compressed'
+
+
+def time_to_md5():
+    md5 = hashlib.md5(str(time.time()).encode('ascii')).hexdigest()
+    return md5
 
 
 def get_lines(cmd):
@@ -63,7 +70,8 @@ class EMA:
 
     def archive_path(self):
         """tmpディレクトリを用いて、その中で解凍。"""
-        tmp_path = join(self.output_path, 'tmp_ema')
+        tmp_dir_name = 'tmp_ema_' + time_to_md5()
+        tmp_path = join(self.output_path, tmp_dir_name)
         mkdir(tmp_path)
 
         Archive(self.target_file).extractall(tmp_path)
@@ -72,14 +80,15 @@ class EMA:
         return extracted_pathes
 
     def mogrify_archive(self, extracted_path):
-        print("Mogrify_archive: ", extracted_path)
-        glob_path = extracted_path.translate({ord('['): '[[]', ord(']'): '[]]'})
+        print('Mogrify_archive: ', extracted_path)
+        glob_path = extracted_path.translate(
+            {ord('['): '[[]', ord(']'): '[]]'})
         files = glob.glob(glob_path + '/*')
         #files = [f.replace(' ', '\ ') for f in path_allfiles]
         img_list = []
         for f in files:
             if is_archived(f):
-                print("Executing EMA for this file:")
+                print('Executing EMA for this file:')
                 print(f)
                 execute_ema(f, output_path=self.output_path)
             elif isdir(f):
@@ -87,7 +96,7 @@ class EMA:
             elif is_img(f):
                 img_list.append(f)
             else:
-                print("Ignore this file:")
+                print('Ignore this file:')
                 print(f)
 
         if img_list:
@@ -124,7 +133,7 @@ def execute_ema(target_file, output_path=None, extracted_pathes=None):
 
 args = sys.argv
 if len(args) < 2:
-    raise ValueError("You need at least 1 argument")
+    raise ValueError('You need at least 1 argument')
 
 for target_file in args[1:]:
     execute_ema(target_file)
