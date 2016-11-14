@@ -73,35 +73,33 @@ class EMA:
 
     def mogrify_archive(self, extracted_path):
         print("Mogrify_archive: ", extracted_path)
-        path_allfiles = glob.glob(extracted_path + '/*')
+        glob_path = extracted_path.translate({ord('['): '[[]', ord(']'): '[]]'})
+        files = glob.glob(glob_path + '/*')
         #files = [f.replace(' ', '\ ') for f in path_allfiles]
-        files = path_allfiles
-        print("Files: ", files)
         img_list = []
         for f in files:
-            print(f)
             if is_archived(f):
-                print("Zip")
+                print("Executing EMA for this file:")
+                print(f)
                 execute_ema(f, output_path=self.output_path)
             elif isdir(f):
-                print("Dir")
                 self.mogrify_archive(f)
             elif is_img(f):
-                print("Img")
                 img_list.append(f)
             else:
-                print("ELSE")
+                print("Ignore this file:")
+                print(f)
 
         if img_list:
+            img_list = [f.replace(' ', '\ ') for f in img_list]
             # mogrify images
             self.mogrify(img_list)
             # archive images
-            print("img: ", img_list)
             rar_name = basename(extracted_path.replace(
                 ' ', '\ ')) + '[Archived].rar'
             rar_name = join(self.output_path, rar_name)
             cmd = 'rar a -r -m5 -ep1 ' + rar_name + ' ' + ' '.join(img_list)
-            print('archive images ...')
+            print('archiving images ...')
             print(cmd)
             for line in get_lines(cmd):
                 sys.stdout.buffer.write(line)
@@ -121,12 +119,12 @@ def execute_ema(target_file, output_path=None, extracted_pathes=None):
     print('Processing {} file start ...'.format(basename(target_file)))
     ema = EMA(target_file, output_path, extracted_pathes)
     ema.execute()
-    #ema.rm_tmpdir()
+    ema.rm_tmpdir()
     print('Done!')
 
 args = sys.argv
 if len(args) < 2:
-    print('')
+    raise ValueError("You need at least 1 argument")
 
 for target_file in args[1:]:
     execute_ema(target_file)
