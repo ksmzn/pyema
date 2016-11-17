@@ -54,37 +54,33 @@ class EMA:
 
     def __init__(self, target_file, output_path=None, extracted_pathes=None):
         self.target_file = expanduser(target_file)
+        self.target_path, target_filename_ext = split(self.target_file)
+        self.target_filename, _ = splitext(target_filename_ext)
         # outputpathの指定がなければ、
         # そのファイルがあるディレクトリに解凍
         if not output_path:
-            self.output_path, _ = split(self.target_file)
+            self.output_path = self.target_path
         else:
             self.output_path = output_path
 
-    def execute(self):
-        """zip解凍→画像圧縮→rar."""
-        print('extracting archive file ...')
-        extracted_pathes = self.archive_path()
-        for p in extracted_pathes:
-            self.mogrify_archive(p)
-
     def archive_path(self):
         """tmpディレクトリを用いて、その中で解凍。"""
-        tmp_dir_name = 'tmp_ema_' + time_to_md5()
-        tmp_path = join(self.output_path, tmp_dir_name)
-        mkdir(tmp_path)
+        self.tmp_dir_name = 'tmp_ema_' + time_to_md5()
+        self.tmp_path = join(self.output_path, self.tmp_dir_name)
+        mkdir(self.tmp_path)
+        Archive(self.target_file).extractall(self.tmp_path)
 
-        Archive(self.target_file).extractall(tmp_path)
-        self.tmp_path = tmp_path
-        extracted_pathes = glob.glob(join(tmp_path, '*'))
-        return extracted_pathes
+    def mogrify_archive(self, extracted_path=None):
+        if not extracted_path:
+            extracted_path = self.tmp_path
 
-    def mogrify_archive(self, extracted_path):
-        print('Mogrify_archive: ', extracted_path)
-        glob_path = extracted_path.translate(
+        print('Checking this directory: ', extracted_path)
+        path, dir_name = split(extracted_path)
+        glob_name = dir_name.translate(
             {ord('['): '[[]', ord(']'): '[]]'})
+        glob_path = join(path, glob_name)
         files = glob.glob(glob_path + '/*')
-        #files = [f.replace(' ', '\ ') for f in path_allfiles]
+
         img_list = []
         for f in files:
             if is_archived(f):
@@ -104,14 +100,20 @@ class EMA:
             # mogrify images
             self.mogrify(img_list)
             # archive images
-            rar_name = basename(extracted_path.replace(
-                ' ', '\ ')) + '[Archived].rar'
+            rar_name = self.get_rar_name(extracted_path)
             rar_name = join(self.output_path, rar_name)
             cmd = 'rar a -r -m5 -ep1 ' + rar_name + ' ' + ' '.join(img_list)
             print('archiving images ...')
             print(cmd)
             for line in get_lines(cmd):
                 sys.stdout.buffer.write(line)
+
+    def get_rar_name(self, path):
+        rar_name = basename(path)
+        if rar_name == self.tmp_dir_name:
+            rar_name = self.target_filename
+        rar_name = rar_name.replace(' ', '\ ') + '[Archived].rar'
+        return rar_name
 
     def mogrify(self, img_list):
         print('mogrifing images ...')
@@ -127,7 +129,8 @@ class EMA:
 def execute_ema(target_file, output_path=None, extracted_pathes=None):
     print('Processing {} file start ...'.format(basename(target_file)))
     ema = EMA(target_file, output_path, extracted_pathes)
-    ema.execute()
+    ema.archive_path()
+    ema.mogrify_archive()
     ema.rm_tmpdir()
     print('Done!')
 
