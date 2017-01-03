@@ -18,7 +18,7 @@ setup(name='pyema',
             'pyunpack'
             ],
         entry_points = {
-            'console_scripts': ['pyema=pyema.command_line:execute_ema'],
+            'console_scripts': ['pyema=pyema.command_line:main'],
         },
         zip_safe=False)
 # setup({

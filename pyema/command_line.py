@@ -1,7 +1,10 @@
-import sys
-import pyema
+# import sys
+from pyema import pyema
+from os.path import basename
+from argparse import ArgumentParser
 
-def execute_ema(target_files, output_path=None, extracted_pathes=None):
+def execute_ema(args, output_path=None, extracted_pathes=None):
+    target_files = args['fname']
     for target_file in target_files:
         print('Processing {} file start ...'.format(basename(target_file)))
         ema = pyema.EMA(target_file, output_path, extracted_pathes)
@@ -10,6 +13,12 @@ def execute_ema(target_files, output_path=None, extracted_pathes=None):
         ema.rm_tmpdir()
         print('Done!')
 
+
+def main(prog=None, args=None):
+    parser = ArgumentParser(prog='pyema')
+    parser.add_argument('fname', type=str, nargs='*', help='ema fname')
+    args = vars(parser.parse_args())
+    execute_ema(args)
 # args = sys.argv
 # if len(args) < 2:
 #     raise ValueError('You need at least 1 argument')
