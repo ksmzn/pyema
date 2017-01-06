@@ -70,7 +70,7 @@ class EMA:
         mkdir(self.tmp_path)
         Archive(self.target_file).extractall(self.tmp_path)
 
-    def mogrify_archive(self, extracted_path=None):
+    def mogrify_archive(self, extracted_path=None, compress_method='zip'):
         if not extracted_path:
             extracted_path = self.tmp_path
 
@@ -102,7 +102,12 @@ class EMA:
             # archive images
             rar_name = self.get_rar_name(extracted_path)
             rar_name = join(self.output_path, rar_name)
-            cmd = 'rar a -r -m5 -ep1 ' + rar_name + ' ' + ' '.join(img_list)
+            if compress_method == 'rar':
+                cmd = 'rar a -r -m5 -ep1 ' + rar_name + ' ' + ' '.join(img_list)
+            else:
+                # TODO
+                pass
+
             print('archiving images ...')
             print(cmd)
             for line in get_lines(cmd):

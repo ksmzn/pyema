@@ -3,13 +3,13 @@ from pyema import pyema
 from os.path import basename
 from argparse import ArgumentParser
 
-def execute_ema(args, output_path=None, extracted_pathes=None):
+def execute_ema(args, output_path=None, extracted_pathes=None, compless_method='rar'):
     target_files = args['fname']
     for target_file in target_files:
         print('Processing {} file start ...'.format(basename(target_file)))
         ema = pyema.EMA(target_file, output_path, extracted_pathes)
         ema.archive_path()
-        ema.mogrify_archive()
+        ema.mogrify_archive(None, compless_method)
         ema.rm_tmpdir()
         print('Done!')
 
@@ -17,6 +17,7 @@ def execute_ema(args, output_path=None, extracted_pathes=None):
 def main(prog=None, args=None):
     parser = ArgumentParser(prog='pyema')
     parser.add_argument('fname', type=str, nargs='*', help='ema fname')
+    parser.add_argument('c', type=str, nargs='1', help='ema fname')
     args = vars(parser.parse_args())
     execute_ema(args)
 # args = sys.argv
