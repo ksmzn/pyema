@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 
 def execute_ema(filenames, compless_method='zip',
                 output_path=None, extracted_pathes=None):
-    for target_file in target_files:
+    for target_file in filenames:
         print('Processing {} file start ...'.format(basename(target_file)))
         ema = pyema.EMA(target_file, output_path, extracted_pathes)
         ema.archive_path()

@@ -97,30 +97,30 @@ class EMA:
                 print(f)
 
         if img_list:
-            img_list = [f.replace(' ', '\ ') for f in img_list]
+            img_list_escaped = [f.replace(' ', '\ ') for f in img_list]
             # mogrify images
-            self.mogrify(img_list)
+            self.mogrify(img_list_escaped)
             # archive images
-            archived_name = self.get_archived_name(extracted_path, compress_method)
+            extracted_folder = basename(extracted_path)
+            archived_name = self.get_archived_name(extracted_folder, compress_method)
             archived_name = join(self.output_path, archived_name)
             print('archiving images ...')
             if compress_method == 'rar':
-                cmd = 'rar a -r -m5 -ep1 ' + rar_name + ' ' + ' '.join(img_list)
+                cmd = 'rar a -r -m5 -ep1 ' + archived_name.replace(' ', '\ ') + ' ' + ' '.join(img_list_escaped)
                 print(cmd)
                 for line in get_lines(cmd):
                     sys.stdout.buffer.write(line)
             else:
-                # TODO
-                zipFile = zipfile.ZipFile('./compress_2.zip', 'w', zipfile.ZIP_DEFLATED)
+                zipFile = zipfile.ZipFile(archived_name, 'w', zipfile.ZIP_DEFLATED)
                 for img_name in img_list:
-                    zipFile.write(img_name)
+                    base_imgname = basename(img_name)
+                    zipFile.write(img_name, base_imgname)
                 zipFile.close()
 
-    def get_archived_name(self, path, ext='zip'):
-        archived_name = basename(path)
-        if archived_name == self.tmp_dir_name:
-            archived_name = self.target_filename
-        archived_name = archived_name.replace(' ', '\ ') + '[Archived].' + ext
+    def get_archived_name(self, folder, ext='zip'):
+        if folder == self.tmp_dir_name:
+            folder = self.target_filename
+        archived_name = folder + '[Archived].' + ext
         return archived_name
 
     def mogrify(self, img_list):
