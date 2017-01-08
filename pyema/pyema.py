@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 import time
+import zipfile
 from os import mkdir
 from os.path import basename, dirname, expanduser, isdir, join, split, splitext
 
@@ -100,25 +101,27 @@ class EMA:
             # mogrify images
             self.mogrify(img_list)
             # archive images
-            rar_name = self.get_rar_name(extracted_path)
-            rar_name = join(self.output_path, rar_name)
+            archived_name = self.get_archived_name(extracted_path, compress_method)
+            archived_name = join(self.output_path, archived_name)
+            print('archiving images ...')
             if compress_method == 'rar':
                 cmd = 'rar a -r -m5 -ep1 ' + rar_name + ' ' + ' '.join(img_list)
+                print(cmd)
+                for line in get_lines(cmd):
+                    sys.stdout.buffer.write(line)
             else:
                 # TODO
-                pass
+                zipFile = zipfile.ZipFile('./compress_2.zip', 'w', zipfile.ZIP_DEFLATED)
+                for img_name in img_list:
+                    zipFile.write(img_name)
+                zipFile.close()
 
-            print('archiving images ...')
-            print(cmd)
-            for line in get_lines(cmd):
-                sys.stdout.buffer.write(line)
-
-    def get_rar_name(self, path):
-        rar_name = basename(path)
-        if rar_name == self.tmp_dir_name:
-            rar_name = self.target_filename
-        rar_name = rar_name.replace(' ', '\ ') + '[Archived].rar'
-        return rar_name
+    def get_archived_name(self, path, ext='zip'):
+        archived_name = basename(path)
+        if archived_name == self.tmp_dir_name:
+            archived_name = self.target_filename
+        archived_name = archived_name.replace(' ', '\ ') + '[Archived].' + ext
+        return archived_name
 
     def mogrify(self, img_list):
         print('mogrifing images ...')
