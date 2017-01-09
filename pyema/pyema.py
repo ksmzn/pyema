@@ -102,16 +102,20 @@ class EMA:
             self.mogrify(img_list_escaped)
             # archive images
             extracted_folder = basename(extracted_path)
-            archived_name = self.get_archived_name(extracted_folder, compress_method)
+            archived_name = self.get_archived_name(
+                extracted_folder, compress_method)
             archived_name = join(self.output_path, archived_name)
             print('archiving images ...')
             if compress_method == 'rar':
-                cmd = 'rar a -r -m5 -ep1 ' + archived_name.replace(' ', '\ ') + ' ' + ' '.join(img_list_escaped)
+                cmd = 'rar a -r -m5 -ep1 ' + \
+                    archived_name.replace(' ', '\ ') + \
+                    ' ' + ' '.join(img_list_escaped)
                 print(cmd)
                 for line in get_lines(cmd):
                     sys.stdout.buffer.write(line)
             else:
-                zipFile = zipfile.ZipFile(archived_name, 'w', zipfile.ZIP_DEFLATED)
+                zipFile = zipfile.ZipFile(
+                    archived_name, 'w', zipfile.ZIP_DEFLATED)
                 for img_name in img_list:
                     base_imgname = basename(img_name)
                     zipFile.write(img_name, base_imgname)
@@ -131,5 +135,5 @@ class EMA:
 
     def rm_tmpdir(self):
         """remove temporary directory and files."""
-        print("remove temporary directory and files.")
+        print('remove temporary directory and files.')
         shutil.rmtree(self.tmp_path)
